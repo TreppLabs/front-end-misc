@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>title in lower case</title>
+<style type="text/css">
+li {
+  color: blue;
+  background-color:red;
+}
+span {
+  color: #346437;
+  background-color: #A74923;
+}
+
+.biggie {
+  position: relative;
+  width: 650px;
+  height: 400px;
+  background-color: #556655;
+}
+
+.node {
+  position: absolute;
+  border-style: solid;
+  border-width: 0px;
+  border-color: transparent;
+}
+
+.node.leftie {
+  left: 0;
+  width: 40%;
+  height: 100%;
+  background-color: #AAAA33;
+  border-top-left-radius: 2em;
+  border-bottom-left-radius: 2em;
+}
+
+.node.rightie {
+  right: 0;
+  width: 40%;
+  height: 100%;
+  background-color: #33AAAA;
+  border-top-right-radius: 2em;
+  border-bottom-right-radius: 2em;
+}
+
+.node.top {
+  top:0;
+  width: 100%;
+  height: 40%;
+  background-color: #997777;
+  border-top-left-radius: 2em;
+  border-top-right-radius: 2em;
+}
+
+.node.bottom {
+  bottom: 0;
+  width: 100%;
+  height: 40%;
+  background-color: #779977;
+  border-bottom-left-radius: 2em;
+  border-bottom-right-radius: 2em;
+}
+
+.node:hover {
+  background-color: #338833; -webkit-transition:background-color 2s linear;
+  height: 70%; -webkit-transition:height 1s linear;
+  width: 70%; -webkit-transition:width 0.5s linear;
+}
+
+</style>
+</head>
+
+<body>
+	
+<div class="biggie" id="root">
+<div class="node leftie">
+  <div class="node top">
+    <div class="node leftie">
+    </div>
+    <div class="node rightie">
+    </div>
+  </div>
+  <div class="node bottom">
+    <div class="node leftie">
+    </div>
+    <div class="node rightie">
+    </div>
+  </div>
+</div>
+
+<div class="node rightie">
+  <div class="node top">
+    <div class="node leftie">
+    </div>
+    <div class="node rightie">
+    </div>
+  </div>
+  <div class="node bottom">
+    <div class="node leftie">
+    </div>
+    <div class="node rightie">
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>
