@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<!--
+TO DO list
+Draw a hexagon within the canvas
+Split out JS into separate file
+  (doable without web server??)
+Form entry of x.y
+x,y set position of hexagon
+detect click on canvas (peek at accretion)
+convert click to board x,y
+
+LATER
+clean up basic
+save in GitHub
+review hexagon game in gmail drafts
+
+
+-->
+
+
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Canvas tutorial</title>
+    <script type="text/javascript">
+      var TILE_SIZE = 15;
+      var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
+
+      function drawHexagon(context, x, y, size, color) {
+
+				context.beginPath();
+				context.moveTo (x + size * Math.cos(Math.PI / 6), y +  size *  Math.sin(Math.PI / 6));          
+
+				for (var i = 1; i <= 6; i += 1) {
+					context.lineTo (x + size * Math.cos((i*2 + 1) * Math.PI / 6), y + size * Math.sin((i*2 + 1) * Math.PI / 6));
+				}
+
+				context.strokeStyle = "#000000";
+				context.lineWidth = 1;
+				context.stroke();
+				context.fillStyle = color;
+				context.fill();
+      }
+      
+      function xyToCanvas(x,y) {
+        return {x: 20 + (x*2 + y + 1)*SQR32*TILE_SIZE, y: 50 + y*1.5*TILE_SIZE};
+      }
+
+      function placeHex(x, y, color) {
+        var canvas = document.getElementById('tutorial');
+        if (canvas.getContext) {
+          var ctx = canvas.getContext('2d');
+          var xy = xyToCanvas(x, y);
+          drawHexagon(ctx, xy.x, xy.y, TILE_SIZE, color); 
+        }
+      }
+      
+      function draw(){
+        var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
+        for (var i=0; i<10; i += 1) {
+          for (var j=0; j<10; j += 1) {
+            var c = colors[Math.floor(Math.random() * 6)];
+            placeHex(i, j, c);
+          }
+        }
+      }
+    </script>
+    <style type="text/css">
+      canvas { border: 1px solid black; }
+    </style>
+  </head>
+  <body onload="draw();">
+    <canvas id="tutorial" width="600" height="400"></canvas>
+    <!-- <canvas id="tutorial2" width="250" height="100"></canvas> -->
+  </body>
+</html>
