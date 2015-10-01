@@ -6,8 +6,10 @@ Split out JS into separate file
   (doable without web server??)
 Form entry of x.y
 x,y set position of hexagon
+store hexes per [i,j]
 detect click on canvas (peek at accretion)
 convert click to board x,y
+maintain "hand" of up to 3 colors (tiles)
 
 LATER
 clean up basic
@@ -21,10 +23,66 @@ review hexagon game in gmail drafts
 <html>
   <head>
     <meta charset="utf-8"/>
-    <title>Canvas tutorial</title>
+    <title>Hex Game</title>
     <script type="text/javascript">
       var TILE_SIZE = 15;
+      var NUM_COLUMNS = 10;
+      var NUM_ROWS = 10;
       var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
+      var NUM_COLORS = 6;
+      var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
+      var HAND_SIZE = 3;
+      var hand = [0, 1, 2];
+
+      // create 2D array to store tiles
+      var tileColors = new Array(NUM_COLUMNS);
+      for (var i = 0; i < NUM_COLUMNS; i++) {
+        tileColors[i] = new Array(NUM_ROWS);
+      }
+
+      function distance(x1, y1, x2, y2) {
+        return d = Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
+      }
+
+      function clickHandler(event) {
+        var canvas = document.getElementById('board');
+        var rect = canvas.getBoundingClientRect();
+        var x = event.clientX - rect.left;
+        var y = event.clientY - rect.top;
+        console.log("x: " + x + " y: " + y);
+        var ij = locateTileForCanvasPoint(x, y);
+        console.log('tile color: ' + tileColors[ij.i][ij.j]);
+        for (var i=0; i<HAND_SIZE-1; i++) {
+          hand[i] = hand[i+1];
+        }
+        hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
+        drawHand();
+      }
+
+      // return the [i, j] indexing the tile containing the given (x,y) point on the canvas
+      // crude exhaustive search
+      // and finds *nearest* tile, not nec containing tile!
+      // ought to use something like this http://www.ibm.com/developerworks/library/wa-games/#toggle
+      function locateTileForCanvasPoint(x, y) {
+        var closest_i = (-1);
+        var closest_j = (-1);
+        var minDistance = 999;
+        for (var i=0; i<NUM_COLUMNS; i += 1) {
+          for (var j=0; j<NUM_ROWS; j += 1) {
+            var xy = ijToCanvas(i, j);
+            var tileCenterX = xy.x;
+            var tileCenterY = xy.y;
+            var d = distance(x, y, tileCenterX, tileCenterY);
+            if (d < minDistance) {
+              closest_i = i;
+              closest_j = j;
+              minDistance = d;
+            }
+          }
+        }
+        return {i: closest_i, j: closest_j};
+        //console.log('Point is in tile: (' + closest_i + ', ' + closest_j + ')');
+      }
 
       function drawHexagon(context, x, y, size, color) {
 
@@ -42,35 +100,56 @@ review hexagon game in gmail drafts
 				context.fill();
       }
       
-      function xyToCanvas(x,y) {
-        return {x: 20 + (x*2 + y + 1)*SQR32*TILE_SIZE, y: 50 + y*1.5*TILE_SIZE};
+      function ijToCanvas(i, j) {
+        return {x: 20 + (i*2 + j + 1)*SQR32*TILE_SIZE, y: 50 + j*1.5*TILE_SIZE};
       }
 
-      function placeHex(x, y, color) {
-        var canvas = document.getElementById('tutorial');
+      function placeHex(i, j, color) {
+        var canvas = document.getElementById('board');
         if (canvas.getContext) {
           var ctx = canvas.getContext('2d');
-          var xy = xyToCanvas(x, y);
+          var xy = ijToCanvas(i, j);
           drawHexagon(ctx, xy.x, xy.y, TILE_SIZE, color); 
         }
       }
       
-      function draw(){
-        var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
-        for (var i=0; i<10; i += 1) {
-          for (var j=0; j<10; j += 1) {
-            var c = colors[Math.floor(Math.random() * 6)];
-            placeHex(i, j, c);
-          }
+      function drawHand() {
+        var canvas = document.getElementById('board');
+        if (canvas.getContext) {
+          var ctx = canvas.getContext('2d');
+        }
+
+        var xBase = 500;
+        var yBase = 50;
+        var boxSize = 60;
+        for (var i=0; i<HAND_SIZE; i++) {
+          console.log('hand[' + i + '], color = ' + hand[i]);
+          ctx.fillStyle = colors[hand[i]];
+          var x = xBase;
+          var y = yBase + i*(boxSize+10);
+          ctx.fillRect(x, y, boxSize, boxSize);
         }
       }
+
+      function draw(){
+        var canvas = document.getElementById('board');
+        canvas.onclick = clickHandler;
+        for (var i=0; i<10; i += 1) {
+          for (var j=0; j<10; j += 1) {
+            var c = Math.floor(Math.random() * 6);
+            tileColors[i][j] = c;
+            placeHex(i, j, colors[c]);
+          }
+        }
+        drawHand();
+      }
+      
     </script>
     <style type="text/css">
       canvas { border: 1px solid black; }
     </style>
   </head>
   <body onload="draw();">
-    <canvas id="tutorial" width="600" height="400"></canvas>
-    <!-- <canvas id="tutorial2" width="250" height="100"></canvas> -->
+    <canvas id="board" width="600" height="400"></canvas>
   </body>
 </html>
