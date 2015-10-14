@@ -11,6 +11,11 @@ detect click on canvas (peek at accretion)
 convert click to board x,y
 maintain "hand" of up to 3 colors (tiles)
 
+Maintain "tileset"
+  latest three additions determine the colors in the "hand"
+Require that tileset be connected
+Somehow use hand colors to determine pickable tiles
+
 LATER
 clean up basic
 save in GitHub
@@ -24,7 +29,9 @@ review hexagon game in gmail drafts
   <head>
     <meta charset="utf-8"/>
     <title>Hex Game</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script type="text/javascript">
+     
       var TILE_SIZE = 15;
       var NUM_COLUMNS = 10;
       var NUM_ROWS = 10;
@@ -33,6 +40,19 @@ review hexagon game in gmail drafts
       var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
       var HAND_SIZE = 3;
       var hand = [0, 1, 2];
+      var tileSetSize = 0;
+      var tileSet = [];
+      tileSet.contains = function (ij)
+        {
+          console.log('testing ij: ' + ij.i + ', ' + ij.j);
+          for (var idx = 0; idx < tileSetSize; idx += 1) {
+            if (_.isEqual(ij, tileSet[idx])) {
+              return true;
+            }
+          }
+          console.log('does not contain');
+          return false;
+        };
 
       // create 2D array to store tiles
       var tileColors = new Array(NUM_COLUMNS);
@@ -51,12 +71,21 @@ review hexagon game in gmail drafts
         var y = event.clientY - rect.top;
         console.log("x: " + x + " y: " + y);
         var ij = locateTileForCanvasPoint(x, y);
-        console.log('tile color: ' + tileColors[ij.i][ij.j]);
-        for (var i=0; i<HAND_SIZE-1; i++) {
-          hand[i] = hand[i+1];
+        //console.log('tile color: ' + tileColors[ij.i][ij.j]);
+        // Add tile to tileSet (if not already in)
+        if (tileSet.contains(ij)) {
+          console.log('already contains');
+        } else {
+          console.log('no, does not contain');
+          tileSetSize += 1;
+          tileSet.push(ij);
+          // also redraw tileset!
+          for (var i=0; i<HAND_SIZE-1; i++) {
+            hand[i] = hand[i+1];
+          }
+          hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
+          drawHand();
         }
-        hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
-        drawHand();
       }
 
       // return the [i, j] indexing the tile containing the given (x,y) point on the canvas
