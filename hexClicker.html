@@ -3,18 +3,25 @@
 
   Prep for hex-based game
   Set of primitives for game mechanics:
-    * selectable colored tiles
-    * set of tiles
-    * hand of colors
+    * board: selectable colored tiles
+    * tileSet: set of selected tiles
+    * hand: group of colors player owns
     * detection of adjacency, presence in tileset, etc
     * color/adjacency constraints on selections
 
+NOTES
+  * tile i,j: i=0 at left, j=0 at top
+
 TODO
-  * Split out JS into separate file
-    (doable without web server??)
+  * create tile.adjacent(tile)
+  * create tileSet obj
+  * tileSet.remove(tile)
+  * rename tileSet as ? tileRegion or mapRegion or boardRegion
   * remove tiles from tile set
   * require adjacency to add
   * require new color to add
+  * Split out JS into separate file
+    (doable without web server??)
 
   * do more with classes
   * use CSS
@@ -57,6 +64,27 @@ TODO
         tileColors[i] = new Array(NUM_ROWS);
       }
 
+      // should turn all tile stuff into object instances, but we'll start with a few methods
+      function Tile(ij) {
+        this.ij = ij;
+        this.adjacentTo = function(other_ij) {
+          // should probably handle the case where arg is a tile
+          // if (typeOf(other_ij) == Tile) {
+          //   other_ij = other_ij.ij;
+          // }
+          if ((ij.i == other_ij.i-1) && (ij.j == other_ij.j) || 
+              (ij.i == other_ij.i+1) && (ij.j == other_ij.j) ||
+              (ij.i == other_ij.i) && (ij.j == other_ij.j+1) || 
+              (ij.i == other_ij.i) && (ij.j == other_ij.j-1)   ||
+              (ij.i == other_ij.i-1) && (ij.j == other_ij.j+1) || 
+              (ij.i == other_ij.i+1) && (ij.j == other_ij.j-1)) {
+            console.log("adjacent!");
+          } else {
+            console.log("not adjacent");
+          }
+        };
+      }
+
       function distance(x1, y1, x2, y2) {
         return d = Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
       }
@@ -67,7 +95,14 @@ TODO
         var x = event.clientX - rect.left;
         var y = event.clientY - rect.top;
         var ij = locateTileForCanvasPoint(x, y);
+        console.log('clicked tile: ' + ij.i + ',' + ij.j);
         // Add tile to tileSet (if not already in)
+
+        // HACK adjacency test
+        var t = new Tile(ij);
+        console.log('created temp tile: ' + ij.i + ',' + ij.j);
+        t.adjacentTo({'i':5, 'j':5});
+
         if (tileSet.contains(ij)) {
           console.log('already contains');
         } else {
