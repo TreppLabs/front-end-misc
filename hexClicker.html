@@ -44,19 +44,23 @@ TODO
       var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
       var NUM_COLORS = 6;
       var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
-      var HAND_SIZE = 3;
-      var hand = [0, 1, 2];
+      var HAND_SIZE = 4;
+      var hand = [0, 1, 2, 3];
       var tileSetSize = 0;
       var tileSet = [];
-      tileSet.contains = function (ij)
-        {
-          for (var idx = 0; idx < tileSetSize; idx += 1) {
-            if (_.isEqual(ij, tileSet[idx])) {
-              return true;
-            }
+      tileSet.contains = function (ij) {
+        for (var idx = 0; idx < tileSetSize; idx += 1) {
+          if (_.isEqual(ij, tileSet[idx])) {
+            return true;
           }
-          return false;
-        };
+        }
+        return false;
+      };
+
+      var leftReached = false;
+      var rightReached = false;
+      var topReached = false;
+      var bottomReached = false;
 
       // create 2D array to store tiles
       var tileColors = new Array(NUM_COLUMNS);
@@ -79,11 +83,35 @@ TODO
               (ij.i == other_ij.i-1) && (ij.j == other_ij.j+1) || 
               (ij.i == other_ij.i+1) && (ij.j == other_ij.j-1)) {
             console.log("adjacent!");
+            return true;
           } else {
             console.log("not adjacent");
+            return false;
           }
         };
       }
+
+      tileSet.adjacentTo = function (ij) {
+        var t = new Tile(ij);
+        for (var idx = 0; idx < tileSetSize; idx += 1) {
+          if (t.adjacentTo(tileSet[idx])) {
+            console.log('tileset tile: ' + tileSet[idx].i + ',' + tileSet[idx].j + ' adj to tile: ' + ij.i + ',' + ij.j);
+            return true;
+          }
+        }
+        return false;
+      };
+
+      // shoudl convert hand from array into object, give it this method
+      function handContains(c) {
+        for (var i=0; i<HAND_SIZE; i+=1) {
+          if (hand[i] == c) {
+            return true;
+          }
+        }
+        return false;
+      }
+
 
       function distance(x1, y1, x2, y2) {
         return d = Math.sqrt( (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2) );
@@ -95,28 +123,47 @@ TODO
         var x = event.clientX - rect.left;
         var y = event.clientY - rect.top;
         var ij = locateTileForCanvasPoint(x, y);
-        console.log('clicked tile: ' + ij.i + ',' + ij.j);
-        // Add tile to tileSet (if not already in)
-
-        // HACK adjacency test
         var t = new Tile(ij);
-        console.log('created temp tile: ' + ij.i + ',' + ij.j);
-        t.adjacentTo({'i':5, 'j':5});
+        console.log('clicked tile: ' + t.ij.i + ',' + t.ij.j);
 
+        // Add tile to tileSet (if not already in)
         if (tileSet.contains(ij)) {
           console.log('already contains');
         } else {
           console.log('no, does not contain');
-          drawTileset(1);
-          tileSetSize += 1;
-          tileSet.push(ij);
-          // also redraw tileset!
-          for (var i=0; i<HAND_SIZE-1; i++) {
-            hand[i] = hand[i+1];
+          // gotta be suitable color
+          if (handContains(tileColors[ij.i][ij.j])) {
+            // is adjacent?
+            if ((tileSetSize==0) || tileSet.adjacentTo(t.ij)) {
+              console.log('is adjacent');
+              drawTileset(1);
+              tileSetSize += 1;
+              tileSet.push(ij);
+              // also redraw tileset!
+              for (var i=0; i<HAND_SIZE-1; i++) {
+                hand[i] = hand[i+1];
+              }
+              hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
+              drawHand();
+              drawTileset(4);
+              if (ij.i == 0) leftReached = true;
+              if (ij.i == NUM_COLUMNS-1) rightReached = true;
+              if (ij.j == 0) topReached = true;
+              if (ij.j == NUM_ROWS-1) bottomReached = true;
+              if (leftReached == rightReached == true) {
+                console.log('HORIZONTAL WIN');
+              }
+              if (topReached == bottomReached == true) {
+                console.log('VERTICAL WIN');
+              }
+
+            } else {
+              // clicked tile t not adjacent to tileSet
+              console.log('not adjacent, not added to tileset');
+            }
+          } else {
+            console.log('not a color in the hand');
           }
-          hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
-          drawHand();
-          drawTileset(3);
         }
       }
 
@@ -220,7 +267,7 @@ TODO
           }
         }
         drawHand();
-        drawTileset(3);
+        drawTileset(4);
       }
       
     </script>
