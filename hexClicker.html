@@ -38,12 +38,15 @@ TODO
     <script src="http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.8.3/underscore-min.js"></script>
     <script type="text/javascript">
      
+      var CANVAS_WIDTH = 1000;
+      var CANVAS_HEIGHT = 800;
       var TILE_SIZE = 15;
       var NUM_COLUMNS = 10;
       var NUM_ROWS = 10;
       var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
       var NUM_COLORS = 6;
-      var colors = ['#00F', '#0F0', '#F00', '#0FF', '#F0F', '#FF0'];
+      var colors = ['#00F', '#0F0', '#F00', '#0FF', '#777', '#777', '#FD0'];
+      var GOAL_COLOR = NUM_COLORS;
       var HAND_SIZE = 4;
       var hand = [0, 1, 2, 3];
       var tileSetSize = 0;
@@ -145,15 +148,17 @@ TODO
               }
               hand[HAND_SIZE-1] = tileColors[ij.i][ij.j];
               drawHand();
+              // change color of newly selected tile
+              tileColors[ij.i][ij.j] = GOAL_COLOR;
               drawTileset(4);
               if (ij.i == 0) leftReached = true;
               if (ij.i == NUM_COLUMNS-1) rightReached = true;
               if (ij.j == 0) topReached = true;
               if (ij.j == NUM_ROWS-1) bottomReached = true;
-              if (leftReached == rightReached == true) {
+              if (leftReached == true && rightReached == true) {
                 console.log('HORIZONTAL WIN');
               }
-              if (topReached == bottomReached == true) {
+              if (topReached == true && bottomReached == true) {
                 console.log('VERTICAL WIN');
               }
 
@@ -229,7 +234,7 @@ TODO
           var ctx = canvas.getContext('2d');
         }
 
-        var xBase = 500;
+        var xBase = CANVAS_WIDTH-100;
         var yBase = 50;
         var boxSize = 60;
         for (var i=0; i<HAND_SIZE; i++) {
@@ -259,8 +264,8 @@ TODO
       function drawInitialBoard(){
         var canvas = document.getElementById('board');
         canvas.onclick = clickHandler;
-        for (var i=0; i<10; i += 1) {
-          for (var j=0; j<10; j += 1) {
+        for (var i=0; i<NUM_COLUMNS; i += 1) {
+          for (var j=0; j<NUM_ROWS; j += 1) {
             var c = Math.floor(Math.random() * 6);
             tileColors[i][j] = c;
             placeHex(i, j, c);
@@ -276,6 +281,6 @@ TODO
     </style>
   </head>
   <body onload="drawInitialBoard();">
-    <canvas id="board" width="600" height="400"></canvas>
+    <canvas id="board" width="1000" height="800"></canvas>
   </body>
 </html>
