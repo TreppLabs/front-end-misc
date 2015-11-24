@@ -41,11 +41,13 @@ TODO
       var CANVAS_WIDTH = 1000;
       var CANVAS_HEIGHT = 800;
       var TILE_SIZE = 15;
-      var NUM_COLUMNS = 10;
-      var NUM_ROWS = 10;
+      var NUM_COLUMNS = 20;
+      var NUM_ROWS = 20;
+      var nCols = NUM_COLUMNS;
+      var nRows = NUM_ROWS;
       var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
-      var NUM_COLORS = 6;
-      var colors = ['#00F', '#0F0', '#F00', '#0FF', '#777', '#777', '#FD0'];
+      var NUM_COLORS = 10;
+      var colors = ['#00F', '#0F0', '#F00', '#F0F', '#777', '#777', '#777', '#777', '#777', '#777', '#FD0'];
       var GOAL_COLOR = NUM_COLORS;
       var HAND_SIZE = 4;
       var hand = [0, 1, 2, 3];
@@ -65,11 +67,8 @@ TODO
       var topReached = false;
       var bottomReached = false;
 
-      // create 2D array to store tiles
-      var tileColors = new Array(NUM_COLUMNS);
-      for (var i = 0; i < NUM_COLUMNS; i++) {
-        tileColors[i] = new Array(NUM_ROWS);
-      }
+      // create 2D array to store tiles -- set at initialization
+      var tileColors = [];
 
       // should turn all tile stuff into object instances, but we'll start with a few methods
       function Tile(ij) {
@@ -123,11 +122,17 @@ TODO
       function clickHandler(event) {
         var canvas = document.getElementById('board');
         var rect = canvas.getBoundingClientRect();
+        console.log('nr: ' + numRows.value);
         var x = event.clientX - rect.left;
         var y = event.clientY - rect.top;
         var ij = locateTileForCanvasPoint(x, y);
         var t = new Tile(ij);
-        console.log('clicked tile: ' + t.ij.i + ',' + t.ij.j);
+        attemptTilePlacement(t);
+      }
+
+      function attemptTilePlacement(t) {
+        var ij = t.ij;
+        console.log('clicked tile: ' + ij.i + ',' + ij.j);
 
         // Add tile to tileSet (if not already in)
         if (tileSet.contains(ij)) {
@@ -171,6 +176,7 @@ TODO
           }
         }
       }
+
 
       // return the [i, j] indexing the tile containing the given (x,y) point on the canvas
       // crude exhaustive search
@@ -261,11 +267,22 @@ TODO
         }
       }
 
-      function drawInitialBoard(){
+      function initializeGame() {
+        var reset = document.getElementById('reset');
+        reset.onclick = drawInitialBoard;
         var canvas = document.getElementById('board');
         canvas.onclick = clickHandler;
-        for (var i=0; i<NUM_COLUMNS; i += 1) {
-          for (var j=0; j<NUM_ROWS; j += 1) {
+        tileColors = new Array(nCols);
+        for (var i = 0; i < nCols; i++) {
+          tileColors[i] = new Array(nRows);
+        }
+        drawInitialBoard();
+      }
+
+      function drawInitialBoard(){
+        console.log('nr, nc: ' + nRows + ', ' + nCols);
+        for (var i=0; i<nCols; i += 1) {
+          for (var j=0; j<nRows; j += 1) {
             var c = Math.floor(Math.random() * 6);
             tileColors[i][j] = c;
             placeHex(i, j, c);
@@ -280,7 +297,10 @@ TODO
       canvas { border: 1px solid black; }
     </style>
   </head>
-  <body onload="drawInitialBoard();">
+  <body onload="initializeGame();"> 
+    Rows: <input name="nRows" id="numRows" type="number" value=nRows/>   
+    Cols: <input name="nCols" id="numCols" type="number" value=nCols/>   
+    <div id="reset" width="80" height="20">Click to reset</div>
     <canvas id="board" width="1000" height="800"></canvas>
   </body>
 </html>
