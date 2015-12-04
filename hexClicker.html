@@ -303,6 +303,9 @@ TODO
 
 
       function drawInitialBoard(){
+        var canvas = document.getElementById('board');
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         for (var i=0; i<nCols; i += 1) {
           for (var j=0; j<nRows; j += 1) {
             drawHexTile(i, j, tileColors[i][j]);
