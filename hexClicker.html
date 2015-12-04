@@ -13,6 +13,7 @@ NOTES
   * tile i,j: i=0 at left, j=0 at top
 
 TODO
+  * when resizing, clear canvas first! 
   * create tile.adjacent(tile)
   * create tileSet obj
   * tileSet.remove(tile)
@@ -41,10 +42,10 @@ TODO
       var CANVAS_WIDTH = 1000;
       var CANVAS_HEIGHT = 800;
       var TILE_SIZE = 15;
-      var NUM_COLUMNS = 20;
-      var NUM_ROWS = 20;
-      var nCols = NUM_COLUMNS;
-      var nRows = NUM_ROWS;
+      var DEFAULT_NUM_COLUMNS = 15;
+      var DEFAULT_NUM_ROWS = 15;
+      var nCols = DEFAULT_NUM_COLUMNS;
+      var nRows = DEFAULT_NUM_ROWS;
       var SQR32 = Math.sqrt(3) / 2;   // square root of 3 divided by 2
       var NUM_COLORS = 10;
       var colors = ['#00F', '#0F0', '#F00', '#F0F', '#777', '#777', '#777', '#777', '#777', '#777', '#FD0'];
@@ -52,10 +53,12 @@ TODO
       var HAND_SIZE = 4;
       var hand = [0, 1, 2, 3];
       var tileSetSize = 0;
-      var tileSet = [];
+      var tileSet = {};
+      tileSet.tiles = [];
+
       tileSet.contains = function (ij) {
         for (var idx = 0; idx < tileSetSize; idx += 1) {
-          if (_.isEqual(ij, tileSet[idx])) {
+          if (_.isEqual(ij, tileSet.tiles[idx])) {
             return true;
           }
         }
@@ -84,7 +87,6 @@ TODO
               (ij.i == other_ij.i) && (ij.j == other_ij.j-1)   ||
               (ij.i == other_ij.i-1) && (ij.j == other_ij.j+1) || 
               (ij.i == other_ij.i+1) && (ij.j == other_ij.j-1)) {
-            console.log("adjacent!");
             return true;
           } else {
             console.log("not adjacent");
@@ -96,8 +98,7 @@ TODO
       tileSet.adjacentTo = function (ij) {
         var t = new Tile(ij);
         for (var idx = 0; idx < tileSetSize; idx += 1) {
-          if (t.adjacentTo(tileSet[idx])) {
-            console.log('tileset tile: ' + tileSet[idx].i + ',' + tileSet[idx].j + ' adj to tile: ' + ij.i + ',' + ij.j);
+          if (t.adjacentTo(tileSet.tiles[idx])) {
             return true;
           }
         }
@@ -122,7 +123,6 @@ TODO
       function clickHandler(event) {
         var canvas = document.getElementById('board');
         var rect = canvas.getBoundingClientRect();
-        console.log('nr: ' + numRows.value);
         var x = event.clientX - rect.left;
         var y = event.clientY - rect.top;
         var ij = locateTileForCanvasPoint(x, y);
@@ -146,7 +146,7 @@ TODO
               console.log('is adjacent');
               drawTileset(1);
               tileSetSize += 1;
-              tileSet.push(ij);
+              tileSet.tiles.push(ij);
               // also redraw tileset!
               for (var i=0; i<HAND_SIZE-1; i++) {
                 hand[i] = hand[i+1];
@@ -157,9 +157,9 @@ TODO
               tileColors[ij.i][ij.j] = GOAL_COLOR;
               drawTileset(4);
               if (ij.i == 0) leftReached = true;
-              if (ij.i == NUM_COLUMNS-1) rightReached = true;
+              if (ij.i == nCols-1) rightReached = true;
               if (ij.j == 0) topReached = true;
-              if (ij.j == NUM_ROWS-1) bottomReached = true;
+              if (ij.j == nRows-1) bottomReached = true;
               if (leftReached == true && rightReached == true) {
                 console.log('HORIZONTAL WIN');
               }
@@ -186,8 +186,8 @@ TODO
         var closest_i = (-1);
         var closest_j = (-1);
         var minDistance = 999;
-        for (var i=0; i<NUM_COLUMNS; i += 1) {
-          for (var j=0; j<NUM_ROWS; j += 1) {
+        for (var i=0; i<nCols; i += 1) {
+          for (var j=0; j<nRows; j += 1) {
             var xy = ijToCanvas(i, j);
             var tileCenterX = xy.x;
             var tileCenterY = xy.y;
@@ -225,7 +225,7 @@ TODO
         return {x: 20 + (i*2 + j + 1)*SQR32*TILE_SIZE, y: 50 + j*1.5*TILE_SIZE};
       }
 
-      function placeHex(i, j, color) {
+      function drawHexTile(i, j, color) {
         var canvas = document.getElementById('board');
         if (canvas.getContext) {
           var ctx = canvas.getContext('2d');
@@ -258,7 +258,7 @@ TODO
           console.log("undrawing tileset");
         }
         for (var k=0; k<tileSetSize; k++) {
-          var ij = tileSet[k];
+          var ij = tileSet.tiles[k];
  
           var ctx = document.getElementById('board').getContext('2d');
           var xy = ijToCanvas(ij.i, ij.j);
@@ -267,25 +267,45 @@ TODO
         }
       }
 
-      function initializeGame() {
+      function initializeScreen() {
+        document.getElementById('numRows').value=DEFAULT_NUM_ROWS;
+        document.getElementById('numCols').value=DEFAULT_NUM_COLUMNS;
         var reset = document.getElementById('reset');
-        reset.onclick = drawInitialBoard;
+        reset.onclick = initializeGame;
         var canvas = document.getElementById('board');
         canvas.onclick = clickHandler;
+        initializeGame();
+      }
+
+      function initializeGame() {
+        initializeData();
+        drawInitialBoard();        
+      }
+
+      function initializeData() {
+        nRows = numRows.value;
+        nCols = numCols.value;
+        tileSetSize = 0;
+        tileSet.tiles = [];
+ 
         tileColors = new Array(nCols);
         for (var i = 0; i < nCols; i++) {
           tileColors[i] = new Array(nRows);
         }
-        drawInitialBoard();
-      }
-
-      function drawInitialBoard(){
-        console.log('nr, nc: ' + nRows + ', ' + nCols);
         for (var i=0; i<nCols; i += 1) {
           for (var j=0; j<nRows; j += 1) {
             var c = Math.floor(Math.random() * 6);
             tileColors[i][j] = c;
-            placeHex(i, j, c);
+          }
+        }
+
+      }
+
+
+      function drawInitialBoard(){
+        for (var i=0; i<nCols; i += 1) {
+          for (var j=0; j<nRows; j += 1) {
+            drawHexTile(i, j, tileColors[i][j]);
           }
         }
         drawHand();
@@ -297,9 +317,9 @@ TODO
       canvas { border: 1px solid black; }
     </style>
   </head>
-  <body onload="initializeGame();"> 
-    Rows: <input name="nRows" id="numRows" type="number" value=nRows/>   
-    Cols: <input name="nCols" id="numCols" type="number" value=nCols/>   
+  <body onload="initializeScreen();"> 
+    Rows: <input name="nRows" id="numRows" type="number"/>   
+    Cols: <input name="nCols" id="numCols" type="number"/>   
     <div id="reset" width="80" height="20">Click to reset</div>
     <canvas id="board" width="1000" height="800"></canvas>
   </body>
